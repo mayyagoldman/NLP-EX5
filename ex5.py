@@ -60,9 +60,9 @@ def linear_classification(portion=1.):
     from sklearn.metrics import accuracy_score
     tf = TfidfVectorizer(stop_words='english', max_features=1000)
     x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
-    x_train = tf.fit_transform(x_train)  # transform text to tfidf vectors
+    x_train = tf.fit_transform(x_train)  # transform text to tfidf vectors and fit
     x_train = x_train.toarray()  # convert to numpy array
-    x_test = tf.fit_transform(x_test)  # transform text to tfidf vectors
+    x_test = tf.transform(x_test)  # transform text to tfidf vectors
     x_test = x_test.toarray()  # convert to numpy array
     lr_clf = LogisticRegression()  # create logistic regression classifier
     lr_clf.fit(x_train, y_train)  # train classifier
@@ -162,18 +162,18 @@ if __name__ == "__main__":
     portions = [0.1, 0.5, 1.]
     accuracies = []
     # Q1
-    # print("Logistic regression results:")
-    # for p in portions:
-    #     print(f"Portion: {p}")
-    #     acc = linear_classification(portion=p)
-    #     print(f"Accuracy: {acc}")
-    #     accuracies.append(acc)
-    #
-    # Q2
-    print("\nFinetuning results:")
+    print("Logistic regression results:")
     for p in portions:
         print(f"Portion: {p}")
-        print(transformer_classification(portion=p))
+        acc = linear_classification(portion=p)
+        print(f"Accuracy: {acc}")
+        accuracies.append(acc)
+
+    # Q2
+    # print("\nFinetuning results:")
+    # for p in portions:
+    #     print(f"Portion: {p}")
+    #     print(transformer_classification(portion=p))
 
     # # Q3
     # print("\nZero-shot result:")
