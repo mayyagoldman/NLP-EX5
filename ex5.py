@@ -1,5 +1,3 @@
-
-
 ###################################################
 # Exercise 5 - Natural Language Processing 67658  #
 ###################################################
@@ -12,6 +10,7 @@ category_dict = {'comp.graphics': 'computer graphics',
                  'sci.electronics': 'science, electronics',
                  'talk.politics.guns': 'politics, guns'
                  }
+
 
 def get_data(categories=None, portion=1.):
     """
@@ -27,7 +26,7 @@ def get_data(categories=None, portion=1.):
                                    random_state=21)
 
     # train
-    train_len = int(portion*len(data_train.data))
+    train_len = int(portion * len(data_train.data))
     x_train = np.array(data_train.data[:train_len])
     y_train = data_train.target[:train_len]
     # remove empty entries
@@ -43,6 +42,13 @@ def get_data(categories=None, portion=1.):
 
 
 # Q1
+'''
+Run and evaluate a Log-linear classifier.
+For the classifier you will use a the Logistic Regression model. For encoding the text you will use TFIDF vectors.
+Remark: Term-Frequency-Inverse-Document-Frequency, or TFIDF, is just a more sophisticated form for a Bag-Of-Words representation. In addition to the normalized term count (TF), we divide by the document frequency (IDF), this gives a penalty to terms that appear in many documents.
+'''
+
+
 def linear_classification(portion=1.):
     """
     Perform linear classification
@@ -54,9 +60,15 @@ def linear_classification(portion=1.):
     from sklearn.metrics import accuracy_score
     tf = TfidfVectorizer(stop_words='english', max_features=1000)
     x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
-
-    # Add your code here
-    return
+    x_train = tf.fit_transform(x_train)  # transform text to tfidf vectors
+    x_train = x_train.toarray()  # convert to numpy array
+    x_test = tf.fit_transform(x_test)  # transform text to tfidf vectors
+    x_test = x_test.toarray()  # convert to numpy array
+    lr_clf = LogisticRegression()  # create logistic regression classifier
+    lr_clf.fit(x_train, y_train)  # train classifier
+    lr_pred = lr_clf.predict(x_test)  # predict on test set
+    test_score = accuracy_score(y_test, lr_pred)  # calculate accuracy
+    return test_score
 
 
 # Q2
@@ -72,6 +84,7 @@ def transformer_classification(portion=1.):
         """
         Dataset object
         """
+
         def __init__(self, encodings, labels):
             self.encodings = encodings
             self.labels = labels
@@ -86,6 +99,7 @@ def transformer_classification(portion=1.):
 
     from datasets import load_metric
     metric = load_metric("accuracy")
+
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
         predictions = np.argmax(logits, axis=-1)
@@ -93,18 +107,36 @@ def transformer_classification(portion=1.):
 
     from transformers import Trainer, TrainingArguments
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained('distilroberta-base', cache_dir=None)
+    # see https://huggingface.co/docs/transformers/v4.25.1/en/quicktour#trainer-a-pytorch-optimized-training-loop
+    # Use the DataSet object defined above. No need for a DataCollator
+
     model = AutoModelForSequenceClassification.from_pretrained('distilroberta-base',
                                                                cache_dir=None,
                                                                num_labels=len(category_dict),
                                                                problem_type="single_label_classification")
-
+    training_args = TrainingArguments(
+        output_dir="./results",  # output directory
+        learning_rate=5e-5,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        num_train_epochs=5,
+    )
+    tokenizer = AutoTokenizer.from_pretrained('distilroberta-base', cache_dir=None)
     x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
-
-    # Add your code here
-    # see https://huggingface.co/docs/transformers/v4.25.1/en/quicktour#trainer-a-pytorch-optimized-training-loop
-    # Use the DataSet object defined above. No need for a DataCollator
-    return
+    x_train = tokenizer(x_train ,  padding=True, truncation=True )
+    x_test = tokenizer(x_test ,  padding=True, truncation=True )
+    train_dataset = Dataset(x_train, y_train)
+    test_dataset = Dataset(x_test, y_test)
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset= train_dataset,
+        eval_dataset= test_dataset,
+        tokenizer=tokenizer,
+        compute_metrics=compute_metrics
+    )
+    trainer.train()
+    return trainer.evaluate(test_dataset)['eval_accuracy']
 
 
 # Q3
@@ -128,18 +160,21 @@ def zeroshot_classification(portion=1.):
 
 if __name__ == "__main__":
     portions = [0.1, 0.5, 1.]
+    accuracies = []
     # Q1
-    print("Logistic regression results:")
-    for p in portions:
-        print(f"Portion: {p}")
-        print(linear_classification(p))
-
+    # print("Logistic regression results:")
+    # for p in portions:
+    #     print(f"Portion: {p}")
+    #     acc = linear_classification(portion=p)
+    #     print(f"Accuracy: {acc}")
+    #     accuracies.append(acc)
+    #
     # Q2
     print("\nFinetuning results:")
     for p in portions:
         print(f"Portion: {p}")
         print(transformer_classification(portion=p))
 
-    # Q3
-    print("\nZero-shot result:")
-    print(zeroshot_classification())
+    # # Q3
+    # print("\nZero-shot result:")
+    # print(zeroshot_classification())
