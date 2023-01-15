@@ -160,21 +160,25 @@ def zeroshot_classification(portion=1.):
 
 if __name__ == "__main__":
     portions = [0.1, 0.5, 1.]
-    accuracies = []
+    accuracies_q1 = []
     # Q1
     print("Logistic regression results:")
     for p in portions:
         print(f"Portion: {p}")
         acc = linear_classification(portion=p)
         print(f"Accuracy: {acc}")
-        accuracies.append(acc)
+        accuracies_q1.append(acc)
 
     # Q2
-    # print("\nFinetuning results:")
-    # for p in portions:
-    #     print(f"Portion: {p}")
-    #     print(transformer_classification(portion=p))
+    accuracies_q2 = []
+    print("\nFinetuning results:")
+    for p in portions:
+        print(f"Portion: {p}")
+        acc = transformer_classification(portion=p)
+        print(f"Accuracy: {acc}")
+        accuracies_q2.append(acc)
 
-    # # Q3
-    # print("\nZero-shot result:")
-    # print(zeroshot_classification())
+    # Q3
+    accuracies_q3 = []
+    print("\nZero-shot result:")
+    print(zeroshot_classification())
