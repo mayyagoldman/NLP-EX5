@@ -70,7 +70,6 @@ def linear_classification(portion=1.):
     test_score = accuracy_score(y_test, lr_pred)  # calculate accuracy
     return test_score
 
-
 # Q2
 def transformer_classification(portion=1.):
     """
@@ -152,31 +151,37 @@ def zeroshot_classification(portion=1.):
     x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
     clf = pipeline("zero-shot-classification", model='cross-encoder/nli-MiniLM2-L6-H768')
     candidate_labels = list(category_dict.values())
-
+    y_test = [candidate_labels[y] for y in y_test]
     # Add your code here
     # see https://huggingface.co/docs/transformers/v4.25.1/en/main_classes/pipelines#transformers.ZeroShotClassificationPipeline
-    return
+    # use the classifier to predict the labels of the test set
+    # use the accuracy_score function to calculate the accuracy
+    # return the accuracy
+    predictions = []
+    for text in x_test:
+        predictions.append(clf(text, candidate_labels)['labels'][0])
+    return accuracy_score(y_test, predictions)
 
 
 if __name__ == "__main__":
-    portions = [0.1, 0.5, 1.]
-    accuracies_q1 = []
-    # Q1
-    print("Logistic regression results:")
-    for p in portions:
-        print(f"Portion: {p}")
-        acc = linear_classification(portion=p)
-        print(f"Accuracy: {acc}")
-        accuracies_q1.append(acc)
-
-    # Q2
-    accuracies_q2 = []
-    print("\nFinetuning results:")
-    for p in portions:
-        print(f"Portion: {p}")
-        acc = transformer_classification(portion=p)
-        print(f"Accuracy: {acc}")
-        accuracies_q2.append(acc)
+    # portions = [0.1, 0.5, 1.]
+    # accuracies_q1 = []
+    # # Q1
+    # print("Logistic regression results:")
+    # for p in portions:
+    #     print(f"Portion: {p}")
+    #     acc = linear_classification(portion=p)
+    #     print(f"Accuracy: {acc}")
+    #     accuracies_q1.append(acc)
+    #
+    # # Q2
+    # accuracies_q2 = []
+    # print("\nFinetuning results:")
+    # for p in portions:
+    #     print(f"Portion: {p}")
+    #     acc = transformer_classification(portion=p)
+    #     print(f"Accuracy: {acc}")
+    #     accuracies_q2.append(acc)
 
     # Q3
     accuracies_q3 = []
