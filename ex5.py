@@ -71,7 +71,6 @@ def linear_classification(portion=1.):
     test_score = accuracy_score(y_test, lr_pred)  # calculate accuracy
     return test_score
 
-
 # Q2
 def transformer_classification(portion=1.):
     """
@@ -153,10 +152,16 @@ def zeroshot_classification(portion=1.):
     x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
     clf = pipeline("zero-shot-classification", model='cross-encoder/nli-MiniLM2-L6-H768')
     candidate_labels = list(category_dict.values())
-
+    y_test = [candidate_labels[y] for y in y_test]
     # Add your code here
     # see https://huggingface.co/docs/transformers/v4.25.1/en/main_classes/pipelines#transformers.ZeroShotClassificationPipeline
-    return
+    # use the classifier to predict the labels of the test set
+    # use the accuracy_score function to calculate the accuracy
+    # return the accuracy
+    predictions = []
+    for text in x_test:
+        predictions.append(clf(text, candidate_labels)['labels'][0])
+    return accuracy_score(y_test, predictions)
 
 def plot_bar(portions, accuracies):
     plt.bar(portions, accuracies, width=.1)
@@ -190,6 +195,6 @@ if __name__ == "__main__":
     plot_bar(portions, accuracies_q2)
 
     # Q3
-    # accuracies_q3 = []
-    # print("\nZero-shot result:")
-    # print(zeroshot_classification())
+    accuracies_q3 = []
+    print("\nZero-shot result:")
+    print(zeroshot_classification())
