@@ -3,6 +3,7 @@
 ###################################################
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 # subset of categories that we will use
 category_dict = {'comp.graphics': 'computer graphics',
@@ -157,6 +158,14 @@ def zeroshot_classification(portion=1.):
     # see https://huggingface.co/docs/transformers/v4.25.1/en/main_classes/pipelines#transformers.ZeroShotClassificationPipeline
     return
 
+def plot_bar(portions, accuracies):
+    plt.bar(portions, accuracies, width=.1)
+    plt.xlabel("Portion")
+    plt.ylabel("Accuracy")
+    plt.title("Given Accuracy compared to different portions")
+    plt.yticks(np.arange(0, 1 + 0.1, 0.1))
+    plt.xticks(np.arange(0, 1 + 0.1, 0.1))
+    plt.show()
 
 if __name__ == "__main__":
     portions = [0.1, 0.5, 1.]
@@ -168,6 +177,7 @@ if __name__ == "__main__":
         acc = linear_classification(portion=p)
         print(f"Accuracy: {acc}")
         accuracies_q1.append(acc)
+    plot_bar(portions, accuracies_q1)
 
     # Q2
     accuracies_q2 = []
@@ -177,8 +187,9 @@ if __name__ == "__main__":
         acc = transformer_classification(portion=p)
         print(f"Accuracy: {acc}")
         accuracies_q2.append(acc)
+    plot_bar(portions, accuracies_q2)
 
     # Q3
-    accuracies_q3 = []
-    print("\nZero-shot result:")
-    print(zeroshot_classification())
+    # accuracies_q3 = []
+    # print("\nZero-shot result:")
+    # print(zeroshot_classification())
