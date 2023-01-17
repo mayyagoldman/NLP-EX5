@@ -149,7 +149,8 @@ def zeroshot_classification(portion=1.):
     from transformers import pipeline
     from sklearn.metrics import accuracy_score
     import torch
-    x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion)
+    x_train, y_train, x_test, y_test = get_data(categories=category_dict.keys(), portion=portion,
+                                                device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
     clf = pipeline("zero-shot-classification", model='cross-encoder/nli-MiniLM2-L6-H768')
     candidate_labels = list(category_dict.values())
     y_test = [candidate_labels[y] for y in y_test]
@@ -163,26 +164,26 @@ def zeroshot_classification(portion=1.):
         predictions.append(clf(text, candidate_labels)['labels'][0])
     return accuracy_score(y_test, predictions)
 
-def plot_bar(portions, accuracies):
+def plot_bar(portions, accuracies, title):
     plt.bar(portions, accuracies, width=.1)
     plt.xlabel("Portion")
     plt.ylabel("Accuracy")
-    plt.title("Given Accuracy compared to different portions")
+    plt.title(title)
     plt.yticks(np.arange(0, 1 + 0.1, 0.1))
     plt.xticks(np.arange(0, 1 + 0.1, 0.1))
     plt.show()
 
 if __name__ == "__main__":
     portions = [0.1, 0.5, 1.]
-    accuracies_q1 = []
     # Q1
+    accuracies_q1 = []
     print("Logistic regression results:")
     for p in portions:
         print(f"Portion: {p}")
         acc = linear_classification(portion=p)
         print(f"Accuracy: {acc}")
         accuracies_q1.append(acc)
-    plot_bar(portions, accuracies_q1)
+    plot_bar(portions, accuracies_q1, "Logistic Regression results")
 
     # Q2
     accuracies_q2 = []
@@ -192,9 +193,9 @@ if __name__ == "__main__":
         acc = transformer_classification(portion=p)
         print(f"Accuracy: {acc}")
         accuracies_q2.append(acc)
-    plot_bar(portions, accuracies_q2)
+    plot_bar(portions, accuracies_q2, "Finetuning results")
 
     # Q3
-    accuracies_q3 = []
+    res = zeroshot_classification()
     print("\nZero-shot result:")
-    print(zeroshot_classification())
+    print(res)
